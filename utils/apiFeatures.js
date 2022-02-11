@@ -33,7 +33,7 @@ class APIFeatures {
     // At this point it is specific to Tour Model
     const page = this.queryStr.page * 1 || 1; // page * 1 to convert it to Number
     const limit = this.queryStr.limit * 1 || 10;
-    const skip = (this.queryStr.page - 1) * limit;
+    const skip = (page - 1) * limit;
 
     this.query = this.query.skip(skip).limit(limit);
 

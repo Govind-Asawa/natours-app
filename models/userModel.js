@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
     minlength: [6, 'Password should have a min length of 6'],
   },
   confirmPassword: {
@@ -46,10 +47,28 @@ userSchema.pre('save', async function (next) {
   if (this.confirmPassword) this.confirmPassword = undefined;
 });
 
+userSchema.methods.checkPassword = async (plainPass, hashPass) => {
+  // cannot use this.password bcz select: false for password
+  return await bcrypt.compare(plainPass, hashPass); //true or false
+};
+
 const User = mongoose.model('User', userSchema);
 
 exports.createUser = async function (obj) {
   return await User.create(obj);
+};
+
+exports.validateAndGetUser = async (email, plainPass) => {
+  //have to explicitly select password
+  const user = await User.findOne({ email }).select('+password');
+  let result = false;
+
+  if (user) {
+    result = await user.checkPassword(plainPass, user.password);
+  }
+
+  // result is true only if we have a user and the pass matches, false in all other cases
+  return result ? user : null;
 };
 
 exports.getUser = async (id) => {

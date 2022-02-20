@@ -34,6 +34,9 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords dont match',
     },
   },
+  passLastModified: {
+    type: Date, //Inserted in the pre-save hook
+  },
 });
 
 // encrypt
@@ -42,6 +45,7 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
+  this.passLastModified = new Date(); //current time
 
   //Do not save confirmPassword to DB, we simply set it to undefined
   if (this.confirmPassword) this.confirmPassword = undefined;
@@ -50,6 +54,12 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.checkPassword = async (plainPass, hashPass) => {
   // cannot use this.password bcz select: false for password
   return await bcrypt.compare(plainPass, hashPass); //true or false
+};
+
+userSchema.methods.wasPassChgAfterJWT = function (JWTTimestamp) {
+  if (!this.passLastModified) return false;
+
+  return this.passLastModified.getTime() / 1000 > JWTTimestamp;
 };
 
 const User = mongoose.model('User', userSchema);

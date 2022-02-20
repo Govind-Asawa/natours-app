@@ -14,6 +14,14 @@ const userSchema = new mongoose.Schema({
     lowecase: true,
     validate: [validator.isEmail, 'Invalid Email format'],
   },
+  role: {
+    type: String,
+    enum: {
+      values: ['user', 'guide', 'lead-guide', 'admin'],
+      message: 'Only roles allowed are user, guide, lead-guide and admin',
+    },
+    default: 'user',
+  },
   photo: {
     type: String,
   },
@@ -35,7 +43,7 @@ const userSchema = new mongoose.Schema({
     },
   },
   passLastModified: {
-    type: Date, //Inserted in the pre-save hook
+    type: Date,
   },
 });
 
@@ -45,7 +53,6 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
-  this.passLastModified = new Date(); //current time
 
   //Do not save confirmPassword to DB, we simply set it to undefined
   if (this.confirmPassword) this.confirmPassword = undefined;

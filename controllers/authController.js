@@ -10,11 +10,21 @@ const generateToken = (id) => {
   });
 };
 
+const verifyAsync = async function (token) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+      if (err) reject(err);
+      else resolve(decoded);
+    });
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   // We shouldn't simply pass whatever we get when creating user, we rather choose
   const newUser = await User.createUser({
     name: req.body.name,
     email: req.body.email,
+    role: req.body.role,
     password: req.body.password,
     confirmPassword: req.body.confirmPassword,
     photo: req.body.photo,
@@ -86,14 +96,17 @@ exports.protect = catchAsync(async (req, res, next) => {
       )
     );
 
+  req.user = user;
   next();
 });
 
-const verifyAsync = async function (token) {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
-      if (err) reject(err);
-      else resolve(decoded);
-    });
-  });
+exports.restrictTo = (...roles) => {
+  return function (req, res, next) {
+    if (!roles.includes(req.user.role))
+      return next(
+        new AppError(403, 'You are not permitted to perform this action')
+      );
+
+    next();
+  };
 };

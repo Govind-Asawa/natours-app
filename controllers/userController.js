@@ -14,7 +14,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 });
 
 exports.getUser = catchAsync(async (req, res, next) => {
-  const user = await User.getUser(req.params.id);
+  const user = await User.getUserById(req.params.id);
 
   if (!user) {
     next(new AppError(400, 'Invalid User ID'));

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -22,9 +23,7 @@ const userSchema = new mongoose.Schema({
     },
     default: 'user',
   },
-  photo: {
-    type: String,
-  },
+  photo: String,
   password: {
     type: String,
     required: true,
@@ -42,12 +41,12 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords dont match',
     },
   },
-  passLastModified: {
-    type: Date,
-  },
+  passLastModified: Date,
+  passwordResetToken: String,
+  resetTokenExpiresAfter: Date,
 });
 
-// encrypt
+//---- HOOKS
 userSchema.pre('save', async function (next) {
   //Encrypt only if the password was modified
   if (!this.isModified('password')) return next();
@@ -58,6 +57,14 @@ userSchema.pre('save', async function (next) {
   if (this.confirmPassword) this.confirmPassword = undefined;
 });
 
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passLastModified = Date.now() - 1000;
+  next();
+});
+
+// ---- User Instance Methods
 userSchema.methods.checkPassword = async (plainPass, hashPass) => {
   // cannot use this.password bcz select: false for password
   return await bcrypt.compare(plainPass, hashPass); //true or false
@@ -69,13 +76,41 @@ userSchema.methods.wasPassChgAfterJWT = function (JWTTimestamp) {
   return this.passLastModified.getTime() / 1000 > JWTTimestamp;
 };
 
+userSchema.methods.genPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // We cannot save this directly into DB, so we encrypt before saving
+  this.passwordResetToken = encryptResetToken(resetToken);
+
+  this.resetTokenExpiresAfter =
+    Date.now() + Number.parseInt(process.env.RESET_TOKEN_EXPIRES_IN);
+
+  return resetToken;
+};
+
+userSchema.methods.discardPasswordResetChanges = function () {
+  this.passwordResetToken = undefined;
+  this.resetTokenExpiresAfter = undefined;
+};
+
 const User = mongoose.model('User', userSchema);
 
+// ---- Utililty Methods
+const encryptResetToken = (resetToken) => {
+  return crypto.createHash('sha256').update(resetToken).digest('hex');
+};
+
+// ---- Public Methods to interact with DB
 exports.createUser = async function (obj) {
   return await User.create(obj);
 };
 
-exports.validateAndGetUser = async (email, plainPass) => {
+/**
+ * @returns
+ * null - if invalid email or password
+ * user - if authenticated successfully
+ */
+exports.validateUser = async (email, plainPass) => {
   //have to explicitly select password
   const user = await User.findOne({ email }).select('+password');
   let result = false;
@@ -88,8 +123,28 @@ exports.validateAndGetUser = async (email, plainPass) => {
   return result ? user : null;
 };
 
-exports.getUser = async (id) => {
+/**
+ * null - Invalid token or Token expired;
+ * user - if everything is fine
+ */
+exports.validateResetToken = async (plainResetToken) => {
+  const encResetToken = encryptResetToken(plainResetToken);
+  const currUser = await User.findOne({
+    passwordResetToken: encResetToken,
+    resetTokenExpiresAfter: { $gt: Date.now() },
+  });
+
+  if (!currUser) return null;
+
+  return currUser;
+};
+
+exports.getUserById = async (id) => {
   return await User.findById(id);
+};
+
+exports.getUserByEmail = async (email) => {
+  return await User.findOne({ email });
 };
 
 exports.getAllUsers = async () => {

@@ -101,6 +101,18 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
+exports.validateUser = catchAsync(async (req, res, next) => {
+  const currUser = await User.validateUser(
+    req.user.email,
+    req.body.currentPassword
+  );
+
+  if (!currUser)
+    return next(new AppError(401, 'Incorrect Password, please try again!'));
+
+  next();
+});
+
 exports.restrictTo = (...roles) => {
   return function (req, res, next) {
     if (!roles.includes(req.user.role))
@@ -153,10 +165,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
-  //1. Get the token parameter, pass and confirmPass from the body
+exports.validateResetToken = catchAsync(async (req, res, next) => {
+  //1. Get the token parameter
   const resetToken = req.params.token;
-  const { password, confirmPassword } = req.body;
 
   // 2. Get user based on token
   const currUser = await User.validateResetToken(resetToken);
@@ -165,10 +176,19 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError(404, 'Invalid Token or the Token has expired'));
   }
 
-  // 3. update password and call the save method
+  currUser.discardPasswordResetChanges();
+  req.user = currUser;
+  next();
+});
+
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // 1.  pass and confirmPass from the body
+  const { password, confirmPassword } = req.body;
+  const currUser = req.user;
+
+  // 2. update password and call the save method
   currUser.password = password;
   currUser.confirmPassword = confirmPassword;
-  currUser.discardPasswordResetChanges();
   await currUser.save(); //we want the validation to run
 
   // 4. login the user i.e., send JWT

@@ -55,6 +55,7 @@ userSchema.pre('save', async function (next) {
 
   //Do not save confirmPassword to DB, we simply set it to undefined
   if (this.confirmPassword) this.confirmPassword = undefined;
+  next();
 });
 
 userSchema.pre('save', function (next) {

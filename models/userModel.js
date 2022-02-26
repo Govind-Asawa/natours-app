@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema({
   passLastModified: Date,
   passwordResetToken: String,
   resetTokenExpiresAfter: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 //---- HOOKS
@@ -65,6 +70,11 @@ userSchema.pre('save', function (next) {
   next();
 });
 
+userSchema.pre(/^find/, function (next) {
+  // this keyword points to the query obj
+  this.find({ active: { $ne: 'false' } });
+  next();
+});
 // ---- User Instance Methods
 userSchema.methods.checkPassword = async (plainPass, hashPass) => {
   // cannot use this.password bcz select: false for password
@@ -113,7 +123,7 @@ exports.createUser = async function (obj) {
  */
 exports.validateUser = async (email, plainPass) => {
   //have to explicitly select password
-  const user = await User.findOne({ email }).select('+password');
+  const user = await exports.getUserByEmail(email, 'password');
   let result = false;
 
   if (user) {
@@ -140,14 +150,27 @@ exports.validateResetToken = async (plainResetToken) => {
   return currUser;
 };
 
-exports.getUserById = async (id) => {
-  return await User.findById(id);
+exports.getUserById = async (id, ...allowedFields) => {
+  let query = User.findById(id);
+  if (allowedFields.length != 0) query.select('+' + allowedFields.join(' +'));
+
+  return await query;
 };
 
-exports.getUserByEmail = async (email) => {
-  return await User.findOne({ email });
+exports.getUserByEmail = async (email, ...allowedFields) => {
+  let query = User.findOne({ email });
+  if (allowedFields.length != 0) query.select('+' + allowedFields.join(' +'));
+
+  return await query;
 };
 
 exports.getAllUsers = async () => {
   return await User.find();
+};
+
+exports.updateUser = async (id, obj) => {
+  return await User.findByIdAndUpdate(id, obj, {
+    new: true,
+    runValidators: true,
+  });
 };

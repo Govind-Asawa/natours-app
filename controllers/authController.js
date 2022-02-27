@@ -11,6 +11,32 @@ const generateJWT = (id) => {
   });
 };
 
+const createSendJWT = (user, statusCode, res) => {
+  const token = generateJWT(user._id);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true, //means browser is not allowed to change the cookie value
+  };
+
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  res.cookie('jwt', token, cookieOptions);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user: {
+        name: user.name,
+        email: user.email,
+      },
+    },
+  });
+};
+
 const verifyAsync = async function (token) {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -31,18 +57,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     photo: req.body.photo,
   });
 
-  const token = generateJWT(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: {
-        name: newUser.name,
-        email: newUser.email,
-      },
-    },
-  });
+  createSendJWT(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -60,12 +75,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return;
   }
 
-  const token = generateJWT(user._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-  });
+  createSendJWT(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -192,10 +202,5 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await currUser.save(); //we want the validation to run
 
   // 4. login the user i.e., send JWT
-  const jwt = generateJWT(currUser._id);
-
-  res.status(200).json({
-    status: 'success',
-    token: jwt,
-  });
+  createSendJWT(currUser, 200, res);
 });

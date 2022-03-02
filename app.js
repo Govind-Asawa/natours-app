@@ -34,7 +34,7 @@ app.use('/api', limiter);
 // and also setting payload limit
 app.use(express.json({ limit: '10kb' })); //NOTE --- Middleware to add body to req
 
-//Input sanitization against NoSql query injection
+//Input sanitization against NoSql query inject0ion
 app.use(mongoSanitize());
 
 // Encoding possible HTML tags to prevent XSS

@@ -1,81 +1,71 @@
 const APIFeatures = require('./../utils/apiFeatures');
 const mongoose = require('mongoose');
 
-const tourSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  duration: {
-    type: Number,
-    required: [true, 'Tour must have duration'],
-  },
-  difficulty: {
-    type: String,
-    required: [true, 'Tour must have difficulty'],
-    eum: {
-      values: ['easy', 'medium', 'hard'],
-      message: 'Difficulty can only be one of easy, medium or hard',
-    },
-  },
-  maxGroupSize: {
-    type: Number,
-    required: [true, 'Tour must have a group size'],
-  },
-  price: {
-    type: Number,
-    required: [true, 'Tour must have price'],
-  },
-  ratingsAverage: {
-    type: Number,
-    default: 4.5,
-    min: [1, 'Average rating cannot be less than 1'],
-    max: [5, 'Average rating cannot be more than 5'],
-  },
-  ratingsQuantity: {
-    type: Number,
-    default: 0,
-  },
-  priceDiscount: Number,
-  summary: {
-    type: String,
-    trim: true,
-    required: [true, 'Tour must have a summary'],
-  },
-  description: {
-    type: String,
-    trim: true,
-  },
-  imageCover: {
-    type: String,
-    required: [true, 'Tour must have a cover img'],
-    select: false,
-  },
-  images: {
-    type: [String],
-    select: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-    select: false,
-  },
-  startDates: [Date],
-  startLocation: {
-    //GeoJSON
-    type: {
+const tourSchema = new mongoose.Schema(
+  {
+    name: {
       type: String,
-      default: 'Point',
-      enum: ['Point'],
+      required: true,
+      unique: true,
+      trim: true,
     },
-    coordinates: [Number],
-    address: String,
-    description: String,
-  },
-  locations: [
-    {
+    duration: {
+      type: Number,
+      required: [true, 'Tour must have duration'],
+    },
+    difficulty: {
+      type: String,
+      required: [true, 'Tour must have difficulty'],
+      eum: {
+        values: ['easy', 'medium', 'hard'],
+        message: 'Difficulty can only be one of easy, medium or hard',
+      },
+    },
+    maxGroupSize: {
+      type: Number,
+      required: [true, 'Tour must have a group size'],
+    },
+    price: {
+      type: Number,
+      required: [true, 'Tour must have price'],
+    },
+    ratingsAverage: {
+      type: Number,
+      default: 4.5,
+      min: [1, 'Average rating cannot be less than 1'],
+      max: [5, 'Average rating cannot be more than 5'],
+    },
+    ratingsQuantity: {
+      type: Number,
+      default: 0,
+    },
+    priceDiscount: Number,
+    summary: {
+      type: String,
+      trim: true,
+      required: [true, 'Tour must have a summary'],
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    imageCover: {
+      type: String,
+      required: [true, 'Tour must have a cover img'],
+      select: false,
+    },
+    images: {
+      type: [String],
+      select: false,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+      select: false,
+    },
+    startDates: [Date],
+    startLocation: {
+      //GeoJSON
       type: {
         type: String,
         default: 'Point',
@@ -84,21 +74,43 @@ const tourSchema = new mongoose.Schema({
       coordinates: [Number],
       address: String,
       description: String,
-      day: Number,
     },
-  ],
-  guides: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-    },
-  ],
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guides',
-    select: '-__v -passLastModified',
+    select: 'name photo email',
   });
   next();
 });
@@ -118,7 +130,7 @@ exports.getAllTours = async (filter) => {
 };
 
 exports.getTour = async (id) => {
-  return await Tour.findById(id);
+  return await Tour.findById(id).populate('reviews');
 };
 
 exports.updateTour = async (id, obj) => {

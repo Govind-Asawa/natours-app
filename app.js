@@ -1,5 +1,6 @@
 const usersRouter = require('./routes/userRoutes');
 const toursRouter = require('./routes/tourRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -41,11 +42,6 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // Dealing with parameter pollution
-app.use((req, res, next) => {
-  console.log(req.query);
-  next();
-});
-
 app.use(
   hpp({
     whitelist: ['duration', 'difficulty'],
@@ -55,6 +51,7 @@ app.use(
 // MOUNTING ROUTERS -- Routers will define the middlewares that are expected to end the req-res cycle
 app.use('/api/v1/tours', toursRouter);
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 // Req would come down to this point only if it was not handled, which means the server
 //has been requested for a resource we do not respond to -- so we send 404

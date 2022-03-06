@@ -1,6 +1,7 @@
 const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
+const contFactory = require('./controllerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const result = {};
@@ -20,22 +21,6 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     results: users.length,
     data: {
       users,
-    },
-  });
-});
-
-exports.getUser = catchAsync(async (req, res, next) => {
-  const user = await User.getUserById(req.params.id);
-
-  if (!user) {
-    next(new AppError(400, 'Invalid User ID'));
-    return;
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user,
     },
   });
 });
@@ -84,16 +69,6 @@ exports.createUser = (req, res) => {
   });
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Route not yet defined!',
-  });
-};
-
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Route not yet defined!',
-  });
-};
+exports.getUser = contFactory.getOne(User);
+exports.updateUser = contFactory.updateOne(User);
+exports.deleteUser = contFactory.deleteOne(User);

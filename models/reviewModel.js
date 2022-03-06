@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const modelFactory = require('./modelFactory');
 
 const reviewSchema = new mongoose.Schema({
   createdAt: {
@@ -40,10 +41,10 @@ reviewSchema.pre(/^find/, function (next) {
 
 const Review = mongoose.model('Review', reviewSchema);
 
-exports.createReview = async (obj) => {
-  return await Review.create(obj);
+exports.getAllReviews = async (filter) => {
+  return await Review.find(filter);
 };
 
-exports.getAllReviews = async () => {
-  return await Review.find();
-};
+exports.createDoc = modelFactory.createDoc(Review);
+exports.updateDoc = modelFactory.updateDoc(Review);
+exports.deleteDoc = modelFactory.deleteDoc(Review);

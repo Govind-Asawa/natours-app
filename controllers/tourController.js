@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
+const contFactory = require('./controllerFactory');
 
 exports.bestFiveTours = function (req, res, next) {
   req.query = {
@@ -51,65 +52,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
   //404
 });
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  // req.params
-  const tour = await Tour.getTour(req.params.id);
-
-  if (!tour) {
-    next(new AppError(404, 'No tour found with this ID'));
-    return;
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-
-  //404
-});
-
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.createTour(req.body);
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
-  //400
-});
-
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.updateTour(req.params.id, req.body);
-
-  if (!tour) {
-    next(new AppError(404, 'No tour found with this ID'));
-    return;
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-  //400
-});
-
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.deleteTour(req.params.id);
-
-  if (!tour) {
-    next(new AppError(404, 'No tour found with this ID'));
-    return;
-  }
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-  //404
-});
+exports.getTour = contFactory.getOne(Tour);
+exports.createTour = contFactory.createOne(Tour);
+exports.updateTour = contFactory.updateOne(Tour);
+exports.deleteTour = contFactory.deleteOne(Tour);

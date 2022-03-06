@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const modelFactory = require('./modelFactory');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -112,10 +113,6 @@ const encryptResetToken = (resetToken) => {
 };
 
 // ---- Public Methods to interact with DB
-exports.createUser = async function (obj) {
-  return await User.create(obj);
-};
-
 /**
  * @returns
  * null - if invalid email or password
@@ -168,9 +165,7 @@ exports.getAllUsers = async () => {
   return await User.find();
 };
 
-exports.updateUser = async (id, obj) => {
-  return await User.findByIdAndUpdate(id, obj, {
-    new: true,
-    runValidators: true,
-  });
-};
+exports.getDoc = modelFactory.getDoc(User);
+exports.createDoc = modelFactory.createDoc(User);
+exports.updateDoc = modelFactory.updateDoc(User);
+exports.deleteDoc = modelFactory.deleteDoc(User);

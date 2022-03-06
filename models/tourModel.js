@@ -1,5 +1,6 @@
-const APIFeatures = require('./../utils/apiFeatures');
 const mongoose = require('mongoose');
+const APIFeatures = require('./../utils/apiFeatures');
+const modelFactory = require('./modelFactory');
 
 const tourSchema = new mongoose.Schema(
   {
@@ -117,10 +118,6 @@ tourSchema.pre(/^find/, function (next) {
 
 const Tour = mongoose.model('Tour', tourSchema);
 
-exports.createTour = async function (obj) {
-  return await Tour.create(obj);
-};
-
 exports.getAllTours = async (filter) => {
   const apiFeatures = new APIFeatures(Tour.find(), filter);
   apiFeatures.filter().sort().select().paginate();
@@ -129,20 +126,11 @@ exports.getAllTours = async (filter) => {
   return await apiFeatures.query;
 };
 
-exports.getTour = async (id) => {
-  return await Tour.findById(id).populate('reviews');
-};
-
-exports.updateTour = async (id, obj) => {
-  return await Tour.findByIdAndUpdate(id, obj, {
-    new: true,
-    runValidators: true,
-  });
-};
-
-exports.deleteTour = async (id) => {
-  return await Tour.findByIdAndDelete(id);
-};
+// Populating the virtual field
+exports.getDoc = modelFactory.getDoc(Tour, 'reviews');
+exports.createDoc = modelFactory.createDoc(Tour);
+exports.updateDoc = modelFactory.updateDoc(Tour);
+exports.deleteDoc = modelFactory.deleteDoc(Tour);
 
 exports.deleteAll = async () => {
   return await Tour.deleteMany();

@@ -3,10 +3,13 @@ const { getAllTours, createTour, getTour, updateTour, deleteTour } =
   tourController;
 
 const authController = require('./../controllers/authController');
+const reviewRouter = require('./../routes/reviewRoutes');
 
 const express = require('express');
 
 const router = express.Router();
+
+router.use('/:tourId/reviews', reviewRouter); //Nested routing
 
 router.route('/best-5-tours').get(tourController.bestFiveTours, getAllTours);
 router.route('/stats').get(tourController.getStats);

@@ -38,20 +38,7 @@ exports.monthlyPlan = catchAsync(async (req, res, next) => {
   //400
 });
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  const tours = await Tour.getAllTours(req.query);
-
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-
-  //404
-});
-
+exports.getAllTours = contFactory.getAll(Tour);
 exports.getTour = contFactory.getOne(Tour);
 exports.createTour = contFactory.createOne(Tour);
 exports.updateTour = contFactory.updateOne(Tour);

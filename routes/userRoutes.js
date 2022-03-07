@@ -12,26 +12,28 @@ router
   .route('/resetPassword/:token')
   .patch(authController.validateResetToken, authController.resetPassword);
 
+//**** PROTECTED ROUTES *******
+router.use(authController.protect); // Authenticates the user
+
 /*
  * Header - jwt --> protect
  * Body - oldPassword --> verifyUser
  *        password, confirmPassword --> resetPassword
  */
-router.route('/changePassword').patch(
-  authController.protect, // Authenticates the user
+router.route('/updateMyPassword').patch(
   authController.validateUser, // Ensures only the user knowing curr pass can change it
   authController.resetPassword // actually resets the pass
 );
-
-router
-  .route('/updateMe')
-  .patch(authController.protect, userController.updateMe);
-
-router.route('/deleteMyAccount').delete(
-  authController.protect, //jwt
+router.route('/me').get(userController.getMe, userController.getUser);
+router.route('/updateMe').patch(userController.updateMe);
+router.route('/deleteMe').delete(
   authController.validateUser, //currentPassword
-  userController.deleteMyAccount //deactivates user account
+  userController.deleteMe //deactivates user account
 );
+
+/***** ADMINISTRATOR ONLY ROUTES *******/
+router.use(authController.restrictTo('admin'));
+
 router
   .route('/')
   .get(userController.getAllUsers)
@@ -39,7 +41,13 @@ router
 router
   .route('/:id')
   .get(userController.getUser)
-  .patch(userController.updateUser) // DO NOT use this to update passwords
-  .delete(userController.deleteUser);
+  .patch(
+    authController.restrictTo('admin', 'lead-guide'),
+    userController.updateUser
+  ) // DO NOT use this to update passwords
+  .delete(
+    authController.restrictTo('admin', 'lead-guide'),
+    userController.deleteUser
+  );
 
 module.exports = router;

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const APIFeatures = require('./../utils/apiFeatures');
 const modelFactory = require('./modelFactory');
 
 const tourSchema = new mongoose.Schema(
@@ -118,23 +117,14 @@ tourSchema.pre(/^find/, function (next) {
 
 const Tour = mongoose.model('Tour', tourSchema);
 
-exports.getAllTours = async (filter) => {
-  const apiFeatures = new APIFeatures(Tour.find(), filter);
-  apiFeatures.filter().sort().select().paginate();
-
-  //  EXEC THE QUERY BY AWAITING IT
-  return await apiFeatures.query;
-};
-
+exports.getAllDocs = modelFactory.getAllDocs(Tour);
 // Populating the virtual field
 exports.getDoc = modelFactory.getDoc(Tour, 'reviews');
 exports.createDoc = modelFactory.createDoc(Tour);
 exports.updateDoc = modelFactory.updateDoc(Tour);
 exports.deleteDoc = modelFactory.deleteDoc(Tour);
 
-exports.deleteAll = async () => {
-  return await Tour.deleteMany();
-};
+exports.deleteAll = modelFactory.deleteAllDocs(Tour);
 
 exports.getStats = async () => {
   // select count(*) as numTours, avg(ratingsAverage) as avgRating,.. from Tours where ratingsAverage > 4.5

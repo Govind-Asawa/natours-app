@@ -41,10 +41,8 @@ reviewSchema.pre(/^find/, function (next) {
 
 const Review = mongoose.model('Review', reviewSchema);
 
-exports.getAllReviews = async (filter) => {
-  return await Review.find(filter);
-};
-
+exports.getAllDocs = modelFactory.getAllDocs(Review);
 exports.createDoc = modelFactory.createDoc(Review);
 exports.updateDoc = modelFactory.updateDoc(Review);
 exports.deleteDoc = modelFactory.deleteDoc(Review);
+exports.deleteAll = modelFactory.deleteAllDocs(Review);

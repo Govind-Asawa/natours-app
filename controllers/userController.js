@@ -13,17 +13,10 @@ const filterObj = (obj, ...allowedFields) => {
   return result;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.getAllUsers();
-
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.confirmPassword)
@@ -49,7 +42,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteMyAccount = catchAsync(async (req, res, next) => {
+exports.deleteMe = catchAsync(async (req, res, next) => {
   // If it comes all the way to this function, that means
   // id is valid and user exists
   const user = await User.updateUser(req.user._id, { active: false });
@@ -69,6 +62,7 @@ exports.createUser = (req, res) => {
   });
 };
 
+exports.getAllUsers = contFactory.getAll(User);
 exports.getUser = contFactory.getOne(User);
 exports.updateUser = contFactory.updateOne(User);
 exports.deleteUser = contFactory.deleteOne(User);

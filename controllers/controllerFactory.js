@@ -30,6 +30,22 @@ exports.getOne = (Model) =>
     });
   });
 
+exports.getAll = (Model) =>
+  catchAsync(async (req, res, next) => {
+    // Adjusting to GET nested route for reviews
+    if (req.params.tourId) req.query.tour = req.params.tourId;
+
+    const doc = await Model.getAllDocs(req.query);
+
+    res.status(200).json({
+      status: 'success',
+      results: doc.length,
+      data: {
+        data: doc,
+      },
+    });
+  });
+
 exports.updateOne = (Model) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.updateDoc(req.params.id, req.body);

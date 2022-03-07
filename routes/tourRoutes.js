@@ -13,12 +13,29 @@ router.use('/:tourId/reviews', reviewRouter); //Nested routing
 
 router.route('/best-5-tours').get(tourController.bestFiveTours, getAllTours);
 router.route('/stats').get(tourController.getStats);
-router.route('/monthly-plan/:year').get(tourController.monthlyPlan);
-router.route('/').get(authController.protect, getAllTours).post(createTour);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.monthlyPlan
+  );
+router
+  .route('/')
+  .get(getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    createTour
+  );
 router
   .route('/:id')
   .get(getTour)
-  .patch(updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),

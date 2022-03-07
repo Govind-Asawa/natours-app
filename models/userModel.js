@@ -161,11 +161,9 @@ exports.getUserByEmail = async (email, ...allowedFields) => {
   return await query;
 };
 
-exports.getAllUsers = async () => {
-  return await User.find();
-};
-
+exports.getAllDocs = modelFactory.getAllDocs(User);
 exports.getDoc = modelFactory.getDoc(User);
 exports.createDoc = modelFactory.createDoc(User);
 exports.updateDoc = modelFactory.updateDoc(User);
 exports.deleteDoc = modelFactory.deleteDoc(User);
+exports.deleteAll = modelFactory.deleteAllDocs(User);

@@ -29,6 +29,11 @@ const reviewSchema = new mongoose.Schema({
   },
 });
 
+/**Every user should be allowed to review a tour ONLY ONCE
+ * This can be achieved by having a unique compound index on tour and user
+ */
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   // Populating the tours would be too much and also, we just need a ref
   // but wont be needing tour info when showing reviews
@@ -59,7 +64,7 @@ reviewSchema.statics.updateTourStats = async function (tourId) {
   // In this situation we should assign default values
   await Tour.updateDoc(tourId, {
     ratingsAverage: stats[0]?.avgRating ?? 4.5,
-    ratingsQuantity: stats[0]?.nRatings ?? 1,
+    ratingsQuantity: stats[0]?.nRatings ?? 0,
   });
 };
 

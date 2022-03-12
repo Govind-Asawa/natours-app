@@ -14,12 +14,19 @@ router.use('/:tourId/reviews', reviewRouter); //Nested routing
 router.route('/best-5-tours').get(tourController.bestFiveTours, getAllTours);
 router.route('/stats').get(tourController.getStats);
 router
+  .route('/distances/:location/unit/:unit')
+  .get(tourController.getDistances);
+router
+  .route('/tours-within/:distance/unit/:unit/center/:location')
+  .get(tourController.getToursWithin);
+router
   .route('/monthly-plan/:year')
   .get(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide', 'guide'),
     tourController.monthlyPlan
   );
+
 router
   .route('/')
   .get(getAllTours)

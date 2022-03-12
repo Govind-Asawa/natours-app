@@ -102,6 +102,7 @@ const tourSchema = new mongoose.Schema(
 );
 
 tourSchema.index({ price: 1, duration: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 tourSchema.virtual('reviews', {
   ref: 'Review',
@@ -125,8 +126,38 @@ exports.getDoc = modelFactory.getDoc(Tour, 'reviews');
 exports.createDoc = modelFactory.createDoc(Tour);
 exports.updateDoc = modelFactory.updateDoc(Tour);
 exports.deleteDoc = modelFactory.deleteDoc(Tour);
-
 exports.deleteAll = modelFactory.deleteAllDocs(Tour);
+
+exports.getToursWithin = async (lat, lng, radius) => {
+  return await Tour.find({
+    startLocation: {
+      $geoWithin: {
+        $centerSphere: [[lng, lat], radius],
+      },
+    },
+  });
+};
+
+exports.getDistances = async (lat, lng, multiplier) => {
+  return await Tour.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [lng * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        distance: 1,
+      },
+    },
+  ]);
+};
 
 exports.getStats = async () => {
   // select count(*) as numTours, avg(ratingsAverage) as avgRating,.. from Tours where ratingsAverage > 4.5

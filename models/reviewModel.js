@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const modelFactory = require('./modelFactory');
+const Tour = require('./tourModel');
 
 const reviewSchema = new mongoose.Schema({
   createdAt: {
@@ -39,6 +40,42 @@ reviewSchema.pre(/^find/, function (next) {
   next();
 });
 
+reviewSchema.statics.updateTourStats = async function (tourId) {
+  // this keyword points to the Review model
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRatings: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+
+  // Incase all the reviews are deleted, stats would be an empty array
+  // In this situation we should assign default values
+  await Tour.updateDoc(tourId, {
+    ratingsAverage: stats[0]?.avgRating ?? 4.5,
+    ratingsQuantity: stats[0]?.nRatings ?? 1,
+  });
+};
+
+reviewSchema.post('save', function (doc, next) {
+  // this/doc keyword points to the doc saved which is of type Review Model
+  doc.constructor.updateTourStats(doc.tour);
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, function (doc, next) {
+  // Doc is the updated/deleted document
+  // this is to handle update and delete to reviews, as save hook is not triggered incase of
+  // findOneAndUpdate [Delete]
+  if (doc) doc.constructor.updateTourStats(doc.tour);
+  next();
+});
 const Review = mongoose.model('Review', reviewSchema);
 
 exports.getAllDocs = modelFactory.getAllDocs(Review);

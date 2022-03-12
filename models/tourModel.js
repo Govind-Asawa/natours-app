@@ -101,6 +101,8 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+tourSchema.index({ price: 1, duration: 1 });
+
 tourSchema.virtual('reviews', {
   ref: 'Review',
   foreignField: 'tour',

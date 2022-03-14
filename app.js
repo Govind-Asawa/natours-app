@@ -1,6 +1,7 @@
 const usersRouter = require('./routes/userRoutes');
 const toursRouter = require('./routes/tourRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 
@@ -11,9 +12,14 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const pug = require('pug');
+const path = require('path');
 
 const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 // MIDDLEWARES
 
 //set security headers
@@ -49,6 +55,7 @@ app.use(
 );
 
 // MOUNTING ROUTERS -- Routers will define the middlewares that are expected to end the req-res cycle
+app.use('/', viewRouter);
 app.use('/api/v1/tours', toursRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/reviews', reviewRouter);

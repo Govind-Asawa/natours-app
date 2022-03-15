@@ -1,3 +1,4 @@
+const slugify = require('slugify');
 const mongoose = require('mongoose');
 const modelFactory = require('./modelFactory');
 
@@ -9,6 +10,7 @@ const tourSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    slug: String,
     duration: {
       type: Number,
       required: [true, 'Tour must have duration'],
@@ -34,6 +36,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Average rating cannot be less than 1'],
       max: [5, 'Average rating cannot be more than 5'],
+      set: (val) => Math.round(val * 10) / 10, // 4.666666, 46.6666, 47, 4.7
     },
     ratingsQuantity: {
       type: Number,
@@ -52,11 +55,9 @@ const tourSchema = new mongoose.Schema(
     imageCover: {
       type: String,
       required: [true, 'Tour must have a cover img'],
-      select: false,
     },
     images: {
       type: [String],
-      select: false,
     },
     createdAt: {
       type: Date,
@@ -101,6 +102,7 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+tourSchema.index({ slug: 1 });
 tourSchema.index({ price: 1, duration: 1 });
 tourSchema.index({ startLocation: '2dsphere' });
 
@@ -110,10 +112,15 @@ tourSchema.virtual('reviews', {
   localField: '_id',
 });
 
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
 tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guides',
-    select: 'name photo email',
+    select: 'name photo email role',
   });
   next();
 });
@@ -127,6 +134,10 @@ exports.createDoc = modelFactory.createDoc(Tour);
 exports.updateDoc = modelFactory.updateDoc(Tour);
 exports.deleteDoc = modelFactory.deleteDoc(Tour);
 exports.deleteAll = modelFactory.deleteAllDocs(Tour);
+
+exports.getTourBySlug = async (slug) => {
+  return Tour.findOne({ slug }).populate('reviews');
+};
 
 exports.getToursWithin = async (lat, lng, radius) => {
   return await Tour.find({

@@ -20,6 +20,7 @@ router.use(authController.protect); // Authenticates the user
  * Body - oldPassword --> verifyUser
  *        password, confirmPassword --> resetPassword
  */
+router.route('/logout').get(authController.logout);
 router.route('/updateMyPassword').patch(
   authController.validateUser, // Ensures only the user knowing curr pass can change it
   authController.resetPassword // actually resets the pass

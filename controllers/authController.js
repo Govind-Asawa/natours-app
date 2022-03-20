@@ -78,6 +78,18 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendJWT(user, 200, res);
 });
 
+exports.logout = (req, res, next) => {
+  res.cookie('jwt', 'none', {
+    // COOKIE expires in 2 seconds
+    expires: new Date(Date.now() + 2 * 1000),
+    httpOnly: true, //means browser is not allowed to change the cookie value
+  });
+
+  res.status(200).json({
+    status: 'success',
+  });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   // 1. get token value and check if exists
   let token;
@@ -113,24 +125,28 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 // only for the rendered content, no errors thrown
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
+exports.isLoggedIn = async (req, res, next) => {
   if (!req.cookies.jwt) return next();
 
-  // 2. Verify the token
-  const decoded = await verifyAsync(req.cookies.jwt);
+  try {
+    // 2. Verify the token
+    const decoded = await verifyAsync(req.cookies.jwt);
 
-  // 3. Check if user still exists
-  const user = await User.getUserById(decoded.id);
+    // 3. Check if user still exists
+    const user = await User.getUserById(decoded.id);
 
-  if (!user) return next();
+    if (!user) return next();
 
-  // 4. If password changed since the given JWT was issued
-  if (user.wasPassChgAfterJWT(decoded.iat)) return next();
+    // 4. If password changed since the given JWT was issued
+    if (user.wasPassChgAfterJWT(decoded.iat)) return next();
 
-  // This adds user object as a variable inside all the pug templates
-  res.locals.user = user;
-  next();
-});
+    // This adds user object as a variable inside all the pug templates
+    res.locals.user = user;
+    next();
+  } catch (err) {
+    return next();
+  }
+};
 
 exports.validateUser = catchAsync(async (req, res, next) => {
   const currUser = await User.validateUser(

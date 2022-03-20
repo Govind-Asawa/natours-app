@@ -84,6 +84,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   if (req.headers.authorization?.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1];
+  else if (req.cookies.jwt) token = req.cookies.jwt;
 
   if (!token) return next(new AppError(401, 'login to access this endpoint'));
 
@@ -108,6 +109,26 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
 
   req.user = user;
+  next();
+});
+
+// only for the rendered content, no errors thrown
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  if (!req.cookies.jwt) return next();
+
+  // 2. Verify the token
+  const decoded = await verifyAsync(req.cookies.jwt);
+
+  // 3. Check if user still exists
+  const user = await User.getUserById(decoded.id);
+
+  if (!user) return next();
+
+  // 4. If password changed since the given JWT was issued
+  if (user.wasPassChgAfterJWT(decoded.iat)) return next();
+
+  // This adds user object as a variable inside all the pug templates
+  res.locals.user = user;
   next();
 });
 

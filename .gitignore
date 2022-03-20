@@ -1,5 +1,6 @@
 node_modules/
 *.env
+.cache
 PROBLEMS.txt
-dev-data/img/
-public/img
+public/js/bundle.js
+public/js/bundle.js.map

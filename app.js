@@ -14,6 +14,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const pug = require('pug');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
@@ -55,6 +56,9 @@ app.use('/api', limiter);
 // Body parser, to parse the body and add it to req.body
 // and also setting payload limit
 app.use(express.json({ limit: '10kb' })); //NOTE --- Middleware to add body to req
+
+// Cookie parser
+app.use(cookieParser());
 
 //Input sanitization against NoSql query inject0ion
 app.use(mongoSanitize());

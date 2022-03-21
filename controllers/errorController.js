@@ -21,30 +21,52 @@ const handleJWTExpiredError = () =>
 const handleJWTInvalidError = () =>
   new AppError(401, 'Invalid token, please login');
 
-const devError = (res, err) => {
-  res.status(err.statusCode).json({
-    status: err.status,
+const devError = (req, res, err) => {
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+      error: { ...err },
+      stackTrace: err.stack,
+    });
+  }
+
+  // RENDER WEBSITE
+  res.status(res.statusCode).render('error', {
+    title: 'Something went wrong!',
     message: err.message,
-    error: { ...err },
-    stackTrace: err.stack,
   });
 };
 
-const prodError = (res, err) => {
-  //we wish to show the message only when the error is operational i.e., trusted
-  if (err.isOperational) {
-    res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message,
-    });
-  }
-  //else we just wanna give a very general error without revealing error details
-  else {
-    res.status(500).json({
+const prodError = (req, res, err) => {
+  if (req.originalUrl.startsWith('/api')) {
+    //we wish to show the message only when the error is operational i.e., trusted
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    }
+
+    //else we just wanna give a very general error without revealing error details
+    return res.status(500).json({
       status: 'error',
       message: 'Something wrong happened!',
     });
   }
+
+  // RENDER WEBSITE
+  if (err.isOperational) {
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong!',
+      message: err.message,
+    });
+  }
+  //else we just wanna give a very general error without revealing error details
+  return res.status(500).render('error', {
+    title: 'Something went wrong!',
+    message: 'Please try Again Later',
+  });
 };
 
 // Gloal Error handler
@@ -53,7 +75,7 @@ module.exports = (err, req, res, next) => {
   err.status = err.status || 'error';
 
   if (process.env.NODE_ENV === 'development') {
-    devError(res, err);
+    devError(req, res, err);
   } else if (process.env.NODE_ENV === 'production') {
     let error = { ...err };
 
@@ -73,6 +95,6 @@ module.exports = (err, req, res, next) => {
       error = handleJWTInvalidError();
     }
 
-    prodError(res, error);
+    prodError(req, res, error);
   }
 };

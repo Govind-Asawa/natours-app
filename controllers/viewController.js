@@ -1,5 +1,6 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
+const AppError = require('./../utils/appError');
 
 exports.getOverview = catchAsync(async (req, res, next) => {
   const tours = await Tour.getAllDocs({});
@@ -18,6 +19,9 @@ exports.getOverview = catchAsync(async (req, res, next) => {
 exports.getTour = catchAsync(async (req, res, next) => {
   const slug = req.params.slug;
   const tour = await Tour.getTourBySlug(slug);
+
+  if (!tour)
+    return next(new AppError(404, 'No tour could be found with this name.'));
 
   res
     .status(200)

@@ -56,7 +56,8 @@ app.use('/api', limiter);
 // Body parser, to parse the body and add it to req.body
 // and also setting payload limit
 app.use(express.json({ limit: '10kb' })); //NOTE --- Middleware to add body to req
-
+// Parses formdata if any and adds it to req.body
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Cookie parser
 app.use(cookieParser());
 

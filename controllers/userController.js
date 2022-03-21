@@ -32,7 +32,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   if (Object.keys(filteredObj).length === 0)
     return next(new AppError(400, 'No valid parameter found'));
 
-  const updatedUser = await User.updateUser(req.user._id, filteredObj);
+  const updatedUser = await User.updateDoc(req.user._id, filteredObj);
 
   res.status(200).json({
     status: 'success',
@@ -45,7 +45,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 exports.deleteMe = catchAsync(async (req, res, next) => {
   // If it comes all the way to this function, that means
   // id is valid and user exists
-  const user = await User.updateUser(req.user._id, { active: false });
+  const user = await User.updateDoc(req.user._id, { active: false });
 
   res.status(200).json({
     status: 'success',

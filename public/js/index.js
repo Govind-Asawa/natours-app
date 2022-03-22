@@ -6,7 +6,8 @@ import { updateSettings } from './updateUser';
 const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.login-form .form');
 const logoutBtn = document.getElementById('logout-btn');
-const saveSettigns = document.getElementById('save-settings');
+const saveData = document.getElementById('save-data');
+const savePassword = document.getElementById('save-password');
 
 if (mapBox) {
   const locations = JSON.parse(mapBox.dataset.locations);
@@ -28,11 +29,34 @@ if (logoutBtn) {
   logoutBtn.addEventListener('click', logout);
 }
 
-if (saveSettigns) {
-  const name = document.getElementById('name').value;
-  const email = document.getElementById('email').value;
-  saveSettigns.addEventListener('click', (e) => {
+if (saveData) {
+  saveData.addEventListener('click', (e) => {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
     e.preventDefault();
-    updateSettings(name, email);
+    updateSettings({ name, email }, 'data');
+  });
+}
+
+if (savePassword) {
+  savePassword.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const origContent = savePassword.textContent;
+    savePassword.textContent = 'Updating...';
+
+    const currentPassword = document.getElementById('password-current').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('password-confirm').value;
+
+    await updateSettings(
+      { currentPassword, password, confirmPassword },
+      'password'
+    );
+
+    savePassword.textContent = origContent;
+    document.getElementById('password-current').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('password-confirm').value = '';
   });
 }

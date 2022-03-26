@@ -1,7 +1,32 @@
+const fs = require('fs');
+const multer = require('multer');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const contFactory = require('./controllerFactory');
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/img/users');
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1];
+    cb(null, `user-${req.user._id}-${Date.now()}.${ext}`);
+  },
+});
+
+const multerFilter = (req, file, cb) => {
+  // We only wish to accept files of type image
+  if (file.mimetype.startsWith('image')) cb(null, true);
+  else cb(new AppError(400, 'Please upload files of image type only.'), false);
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadUserPhoto = upload.single('photo');
 
 const filterObj = (obj, ...allowedFields) => {
   const result = {};
@@ -28,6 +53,15 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
 
   const filteredObj = filterObj(req.body, 'name', 'email');
+
+  if (req.file) {
+    filteredObj.photo = req.file.filename;
+    // DELETING THE PREV FILE
+    const path = `public/img/users/${req.user.photo}`;
+    fs.stat(path, (err) => {
+      if (!err) fs.unlink(path, (err) => {});
+    });
+  }
 
   if (Object.keys(filteredObj).length === 0)
     return next(new AppError(400, 'No valid parameter found'));

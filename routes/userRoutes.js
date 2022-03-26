@@ -26,7 +26,9 @@ router.route('/updateMyPassword').patch(
   authController.resetPassword // actually resets the pass
 );
 router.route('/me').get(userController.getMe, userController.getUser);
-router.route('/updateMe').patch(userController.updateMe);
+router
+  .route('/updateMe')
+  .patch(userController.uploadUserPhoto, userController.updateMe);
 router.route('/deleteMe').delete(
   authController.validateUser, //currentPassword
   userController.deleteMe //deactivates user account

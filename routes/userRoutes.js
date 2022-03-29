@@ -28,7 +28,11 @@ router.route('/updateMyPassword').patch(
 router.route('/me').get(userController.getMe, userController.getUser);
 router
   .route('/updateMe')
-  .patch(userController.uploadUserPhoto, userController.updateMe);
+  .patch(
+    userController.uploadUserPhoto,
+    userController.resizeUserPhoto,
+    userController.updateMe
+  );
 router.route('/deleteMe').delete(
   authController.validateUser, //currentPassword
   userController.deleteMe //deactivates user account

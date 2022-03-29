@@ -31,10 +31,14 @@ if (logoutBtn) {
 
 if (saveData) {
   saveData.addEventListener('click', (e) => {
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
     e.preventDefault();
-    updateSettings({ name, email }, 'data');
+
+    var form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+
+    updateSettings(form, 'data');
   });
 }
 

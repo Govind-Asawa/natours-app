@@ -1,7 +1,57 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 const contFactory = require('./controllerFactory');
+
+const multerFilter = (req, file, cb) => {
+  // This filter is called for each file i.e., it is called file number of times
+  if (file.mimetype.startsWith('image')) cb(null, true);
+  else cb(new AppError(400, 'Please upload files of image type only.'), false);
+};
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: multerFilter,
+});
+
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  if (!req.files) return next();
+
+  const imageCover = req.files.imageCover?.[0];
+  const images = req.files.images;
+
+  if (imageCover) {
+    req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+    await sharp(imageCover.buffer)
+      .resize(2000, 1333)
+      .toFormat('jpeg')
+      .jpeg('90')
+      .toFile(`public/img/tours/${req.body.imageCover}`);
+  }
+
+  if (images) {
+    req.body.images = images.map(
+      (img, idx) => `tour-${idx + 1}-${req.params.id}-${Date.now()}.jpeg`
+    );
+    const promises = images.map((img, idx) => {
+      sharp(img.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg('90')
+        .toFile(`public/img/tours/${req.body.images[idx]}`);
+    });
+    await Promise.all(promises);
+  }
+
+  next();
+});
 
 exports.bestFiveTours = function (req, res, next) {
   req.query = {

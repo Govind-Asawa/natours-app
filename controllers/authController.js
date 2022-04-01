@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-const sendEmail = require('./../utils/email');
+const Email = require('./../utils/email');
 
 const generateJWT = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -48,7 +48,7 @@ const verifyAsync = async function (token) {
 
 exports.signup = catchAsync(async (req, res, next) => {
   // We shouldn't simply pass whatever we get when creating user, we rather choose
-  const newUser = await User.createUser({
+  const newUser = await User.createDoc({
     name: req.body.name,
     email: req.body.email,
     role: req.body.role,
@@ -56,6 +56,10 @@ exports.signup = catchAsync(async (req, res, next) => {
     confirmPassword: req.body.confirmPassword,
     photo: req.body.photo,
   });
+
+  const url = `${req.protocol}://${req.get('host')}/me`;
+
+  await new Email(newUser, url).sendWlcmMail();
 
   createSendJWT(newUser, 201, res);
 });
@@ -186,17 +190,12 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // 3. email the token to the user
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/users/resetPassword/${resetToken}`;
-
   try {
-    await sendEmail({
-      to: user.email,
-      subject: 'Password Reset Link, Valid for 10 mins',
-      message: `Forgot Password? Reset it using the link below\n
-      ${resetURL} . Send a PATCH request to this URL with new password and passwordConfirm`,
-    });
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+
+    await new Email(user, resetURL).sendPassResetMail();
 
     res.status(200).json({
       status: 'success',

@@ -2,15 +2,19 @@ const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 const AppError = require('./../utils/appError');
 
+exports.setSecurityPolicy = (_, res, next) => {
+  res.set(
+    'Content-Security-Policy',
+    "default-src 'self' https://*.mapbox.com https://*.stripe.com/v3/ ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com https://js.stripe.com/v3/ 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
+  );
+  next();
+};
+
 exports.getOverview = catchAsync(async (req, res, next) => {
   const tours = await Tour.getAllDocs({});
 
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    )
     .render('overview', {
       tours,
     });
@@ -25,10 +29,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    )
     .render('tour', {
       title: `${tour.name} tour`,
       tour,
@@ -38,10 +38,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
 exports.getLoginForm = (req, res, next) => {
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    )
     .render('login', {
       title: 'log into your Account',
     });
@@ -50,10 +46,6 @@ exports.getLoginForm = (req, res, next) => {
 exports.getAccount = (req, res, next) => {
   res
     .status(200)
-    .set(
-      'Content-Security-Policy',
-      "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
-    )
     .render('account', {
       title: 'Your account details',
     });

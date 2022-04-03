@@ -1,4 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
+const controllerFactory = require('./controllerFactory');
 const TourModel = require('./../models/tourModel');
 const BookingModel = require('./../models/bookingModel');
 const catchAsync = require('./../utils/catchAsync');
@@ -38,8 +39,14 @@ exports.createBookingCheckout = catchAsync(async (req, res, next) => {
 
   if (!tour && !user && !price) return next();
 
-  await BookingModel.createBooking({ user, tour, price });
+  await BookingModel.createDoc({ user, tour, price });
 
   // This is done to visually hide that our app uses query string to create a booking
   res.redirect(req.originalUrl.split('?')[0]);
 });
+
+exports.createBooking = controllerFactory.createOne(BookingModel);
+exports.getBooking = controllerFactory.getOne(BookingModel);
+exports.updateBooking = controllerFactory.updateOne(BookingModel);
+exports.deleteBooking = controllerFactory.deleteOne(BookingModel);
+exports.getAllBookings = controllerFactory.getAll(BookingModel);

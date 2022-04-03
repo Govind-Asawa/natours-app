@@ -39,8 +39,12 @@ bookingSchema.pre(/^find/, function (next) {
 
 const Booking = mongoose.model('Booking', bookingSchema);
 
-exports.createBooking = modelController.createDoc(Booking);
-
 exports.getUserBookings = async (userId) => {
   return await Booking.find({ user: userId });
 };
+
+exports.createDoc = modelController.createDoc(Booking);
+exports.getDoc = modelController.getDoc(Booking);
+exports.updateDoc = modelController.updateDoc(Booking);
+exports.deleteDoc = modelController.deleteDoc(Booking);
+exports.getAllDocs = modelController.getAllDocs(Booking);

@@ -136,7 +136,12 @@ exports.deleteDoc = modelFactory.deleteDoc(Tour);
 exports.deleteAll = modelFactory.deleteAllDocs(Tour);
 
 exports.getTourBySlug = async (slug) => {
-  return Tour.findOne({ slug }).populate('reviews');
+  return await Tour.findOne({ slug }).populate('reviews');
+};
+
+exports.getToursWithIds = async (Ids) => {
+  // $in is like a list operator
+  return await Tour.find({ _id: { $in: Ids } });
 };
 
 exports.getToursWithin = async (lat, lng, radius) => {

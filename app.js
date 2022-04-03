@@ -16,6 +16,7 @@ const hpp = require('hpp');
 const pug = require('pug');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const compression = require('compression');
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
@@ -74,6 +75,9 @@ app.use(
     whitelist: ['duration', 'difficulty'],
   })
 );
+
+// Compressing the responses
+app.use(compression());
 
 // MOUNTING ROUTERS -- Routers will define the middlewares that are expected to end the req-res cycle
 app.use('/', viewRouter);

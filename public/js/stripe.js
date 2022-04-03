@@ -11,9 +11,7 @@ const getStripe = () =>
 export async function bookTour(tourId) {
   try {
     // 1. get checkout Session
-    const response = await axios(
-      `http://localhost:8000/api/v1/bookings/checkout-session/${tourId}`
-    );
+    const response = await axios(`/api/v1/bookings/checkout-session/${tourId}`);
 
     const session = response.data.session;
 
@@ -22,7 +20,6 @@ export async function bookTour(tourId) {
       sessionId: session.id,
     });
   } catch (err) {
-    console.log(err);
     showAlert('error', err);
   }
 }

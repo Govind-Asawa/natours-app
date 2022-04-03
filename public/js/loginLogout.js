@@ -5,7 +5,7 @@ export async function login(email, password) {
   try {
     const res = await axios({
       method: 'POST',
-      url: 'http://localhost:8000/api/v1/users/login',
+      url: '/api/v1/users/login',
       data: {
         email,
         password,
@@ -27,10 +27,9 @@ export const logout = async (e) => {
   try {
     const res = await axios({
       method: 'get',
-      url: 'http://localhost:8000/api/v1/users/logout',
+      url: '/api/v1/users/logout',
     });
 
-    console.log(res.data);
     if (res.data.status === 'success') {
       showAlert('success', 'Logged out successfully');
       window.setTimeout(() => {

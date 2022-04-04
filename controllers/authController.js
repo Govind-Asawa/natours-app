@@ -78,7 +78,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return;
   }
 
-  createSendJWT(user, 200, req, req, res);
+  createSendJWT(user, 200, req, res);
 });
 
 exports.logout = (req, res, next) => {

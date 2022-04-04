@@ -19,6 +19,10 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 
 const app = express();
+
+// To allow Heroku proxies
+app.enable('trust proxy');
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.set('view engine', 'pug');

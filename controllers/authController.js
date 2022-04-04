@@ -11,7 +11,7 @@ const generateJWT = (id) => {
   });
 };
 
-const createSendJWT = (user, statusCode, res) => {
+const createSendJWT = (user, statusCode, req, res) => {
   const token = generateJWT(user._id);
 
   const cookieOptions = {
@@ -19,9 +19,8 @@ const createSendJWT = (user, statusCode, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true, //means browser is not allowed to change the cookie value
+    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
   };
-
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
   res.cookie('jwt', token, cookieOptions);
 
@@ -61,7 +60,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   await new Email(newUser, url).sendWlcmMail();
 
-  createSendJWT(newUser, 201, res);
+  createSendJWT(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -79,7 +78,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return;
   }
 
-  createSendJWT(user, 200, res);
+  createSendJWT(user, 200, req, req, res);
 });
 
 exports.logout = (req, res, next) => {
@@ -239,5 +238,5 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await currUser.save(); //we want the validation to run
 
   // 4. login the user i.e., send JWT
-  createSendJWT(currUser, 200, res);
+  createSendJWT(currUser, 200, req, res);
 });

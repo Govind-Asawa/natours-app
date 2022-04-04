@@ -31,3 +31,12 @@ process.on('unhandledRejection', (err) => {
     process.exit(1);
   });
 });
+
+// Heroku
+process.on('SIGTERM', (err) => {
+  console.log('Received SIGTERM Signal. Shutting down...');
+  // This finishes all the pending requests before closing the server
+  server.close(() => {
+    console.log('Exiting the process...');
+  });
+});

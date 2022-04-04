@@ -38,7 +38,7 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
 });
 
 exports.webhookCheckout = catchAsync(async (req, res, next) => {
-  const sig = request.headers['stripe-signature'];
+  const sig = req.headers['stripe-signature'];
 
   // Body is required to be in a raw format
   let event;

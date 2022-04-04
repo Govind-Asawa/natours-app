@@ -17,6 +17,7 @@ const pug = require('pug');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 const app = express();
 
@@ -28,6 +29,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 // MIDDLEWARES
+
+// CORS
+// simple requests
+app.use(cors());
+// complex requests requires handling pre-flight requests with method OPTIONS
+app.options('*', cors());
 
 //set security headers
 app.use(

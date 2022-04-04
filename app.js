@@ -17,6 +17,7 @@ const hpp = require('hpp');
 const pug = require('pug');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const compression = require('compression');
 const cors = require('cors');
 
@@ -68,7 +69,11 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 // STRIPE'S checkout.session.completed event
-app.post('/webhook-checkout', express.raw(), bookingController.webhookCheckout);
+app.post(
+  '/webhook-checkout',
+  bodyParser.raw({ type: 'application/json' }),
+  bookingController.webhookCheckout
+);
 
 // Body parser, to parse the body and add it to req.body
 // and also setting payload limit

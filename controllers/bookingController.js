@@ -37,33 +37,33 @@ exports.getCheckoutSession = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.webhookCheckout = catchAsync(async (req, res, next) => {
-  const sig = req.headers['stripe-signature'];
+exports.webhookCheckout = (req, res, next) => {
+  const signature = req.headers['stripe-signature'];
 
-  // Body is required to be in a raw format
   let event;
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
-      sig,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    return res.status(400).send(`Webhook error: ${err}`);
+    return res.status(400).send(`Webhook error: ${err.message}`);
   }
-  if (event.type === 'checkout.session.completed') {
-    await createBookingCheckout(event.data.object);
-    res.status(200).json({ received: true });
-  }
-});
 
-const createBookingCheckout = catchAsync(async (session) => {
+  if (event.type === 'checkout.session.completed')
+    createBookingCheckout(event.data.object);
+
+  res.status(200).json({ received: true });
+};
+
+const createBookingCheckout = async (session) => {
   const tour = session.client_reference_id;
   const user = (await UserModel.getUserByEmail(session.customer_email))._id;
-  const price = session.display_items[0].amount / 100;
+  const price = session.amount_total / 100;
 
   await BookingModel.createDoc({ user, tour, price });
-});
+};
 // exports.createBookingCheckout = catchAsync(async (req, res, next) => {
 //   //This is only TEMPORARY
 //   const { user, tour, price } = req.query;

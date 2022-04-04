@@ -13,7 +13,7 @@ router.get('/tour/:slug', authController.isLoggedIn, viewController.getTour);
 router.get('/me', authController.protect, viewController.getAccount);
 router.get(
   '/my-tours',
-  bookingController.createBookingCheckout, //to create booking, set as payment's success_url
+  bookingController.webhookCheckout, //to create booking, set as payment's success_url
   authController.protect,
   viewController.getMyTours
 );

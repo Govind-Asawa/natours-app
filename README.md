@@ -18,11 +18,13 @@ Test User
   - Login and logout
   - Users with different roles (admin, lead-guide, guide, user)
   - role based authorization
+  - protected routes
 * Tour
   - Manage booking, check tours map, check user's reviews and rating
 * User profile
   - Update username, photo, email, and password
 * Credit card Payment (Test Mode)
+* A feature rich API
 
 ## How To Use
 
@@ -64,8 +66,17 @@ Test User
 * Stripe - Payments
 * Mailsac
   - Creates instant email addresses without a need for signup
+* Postman 
+  - Test APIs, create Documentations
 * Heroku - Deploying the Application
 
-## Acknowledgement
+### Design Patterns
+
+* MVC - Model View Controller
+* Factory Pattern
+* Builder Pattern
+
+
+##### Acknowledgement
 
 * This project is an outcome of a course that I've taken in Udemy. Link to the course: [Node.js, Express, MongoDB & More: The Complete Bootcamp 2022](https://www.udemy.com/course/nodejs-express-mongodb-bootcamp/)
